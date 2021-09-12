@@ -8,5 +8,5 @@ setup(
     author_email='jonathan.rahn@42digital.de',
     description='Minimal Raw TensorFlow Experiments',
     packages=find_packages(),
-    install_requires=['tensorflow == 2.4.3'],
+    install_requires=['tensorflow == 2.6.0'],
 )
