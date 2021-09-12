@@ -87,7 +87,7 @@ def run(batch_size=64, learning_rate=1e-3, epochs=5, model=None):
     if not model:
         model = get_model_mlp()
     loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate)
     
     train_loss = tf.keras.metrics.Mean(name='train_loss')
     train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
