@@ -5,7 +5,7 @@ from tensorflow.keras import Model
 
 def get_fashion_mnist():
     data = tf.keras.datasets.fashion_mnist
-    (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+    (x_train, y_train), (x_test, y_test) = data.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0
 
     # Add a channels dimension
