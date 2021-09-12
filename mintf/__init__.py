@@ -57,29 +57,33 @@ def get_model_conv():
     model = ConvModel()
     return model
 
-@tf.function
-def train_step(model, loss_object, optimizer, images, labels, train_loss, train_accuracy):
-    with tf.GradientTape() as tape:
-        # training=True is only needed if there are layers with different
+def train_fn():
+    @tf.function
+    def train_step(model, loss_object, optimizer, images, labels, train_loss, train_accuracy):
+        with tf.GradientTape() as tape:
+            # training=True is only needed if there are layers with different
+            # behavior during training versus inference (e.g. Dropout).
+            predictions = model(images, training=True)
+            loss = loss_object(labels, predictions)
+        gradients = tape.gradient(loss, model.trainable_variables)
+        optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+
+        train_loss(loss)
+        train_accuracy(labels, predictions)
+    return train_step
+
+def test_fn():
+    @tf.function
+    def test_step(model, loss_object, optimizer, images, labels, test_loss, test_accuracy):
+        # training=False is only needed if there are layers with different
         # behavior during training versus inference (e.g. Dropout).
-        predictions = model(images, training=True)
-        loss = loss_object(labels, predictions)
-    gradients = tape.gradient(loss, model.trainable_variables)
-    optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        predictions = model(images, training=False)
+        t_loss = loss_object(labels, predictions)
 
-    train_loss(loss)
-    train_accuracy(labels, predictions)
+        test_loss(t_loss)
+        test_accuracy(labels, predictions)
+    return test_step
 
-@tf.function
-def test_step(model, loss_object, optimizer, images, labels, test_loss, test_accuracy):
-    # training=False is only needed if there are layers with different
-    # behavior during training versus inference (e.g. Dropout).
-    predictions = model(images, training=False)
-    t_loss = loss_object(labels, predictions)
-
-    test_loss(t_loss)
-    test_accuracy(labels, predictions)
-    
 def run(batch_size=64, learning_rate=1e-3, epochs=5, model=None):
     x_train, x_test, y_train, y_test = get_fashion_mnist()
     train_ds, test_ds = get_ds(x_train, x_test, y_train, y_test, batch_size)
@@ -94,7 +98,10 @@ def run(batch_size=64, learning_rate=1e-3, epochs=5, model=None):
 
     test_loss = tf.keras.metrics.Mean(name='test_loss')
     test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='test_accuracy')
-
+    
+    train_step = train_fn()
+    test_step = test_fn()
+    
     for epoch in range(epochs):
         # Reset the metrics at the start of the next epoch
         train_loss.reset_states()
