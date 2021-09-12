@@ -117,8 +117,8 @@ def run(batch_size=64, learning_rate=1e-3, epochs=5, model=None):
 
         print(
             f'Epoch {epoch + 1}, '
-            f'Loss: {train_loss.result()}, '
-            f'Accuracy: {train_accuracy.result() * 100}, '
-            f'Test Loss: {test_loss.result()}, '
-            f'Test Accuracy: {test_accuracy.result() * 100}'
+            f'Loss: {train_loss.result():.4f}, '
+            f'Accuracy: {train_accuracy.result():.3%}, '
+            f'Test Loss: {test_loss.result():.4f}, '
+            f'Test Accuracy: {test_accuracy.result():.3%}'
         )
