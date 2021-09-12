@@ -19,10 +19,29 @@ def get_ds(x_train, x_test, y_train, y_test, batch_size=64):
     test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(batch_size)
     return train_ds, test_ds
 
-def get_model():
-    class MyModel(Model):
+def get_model_mlp():
+    class MLPModel(Model):
         def __init__(self):
-            super(MyModel, self).__init__()
+            super(MLPModel, self).__init__()
+            self.flatten = Flatten()
+            self.d1 = Dense(512, activation='relu')
+            self.d2 = Dense(512, activation='relu')
+            self.d3 = Dense(10)
+
+        def call(self, x):
+            x = self.flatten(x)
+            x = self.d1(x)
+            x = self.d2(x)
+            return self.d3(x)
+
+    # Create an instance of the model
+    model = MLPModel()
+    return model
+
+def get_model_conv():
+    class ConvModel(Model):
+        def __init__(self):
+            super(ConvModel, self).__init__()
             self.conv1 = Conv2D(32, 3, activation='relu')
             self.flatten = Flatten()
             self.d1 = Dense(128, activation='relu')
@@ -35,7 +54,8 @@ def get_model():
             return self.d2(x)
 
     # Create an instance of the model
-    model = MyModel()
+    model = ConvModel()
+    return model
 
 @tf.function
 def train_step(model, loss_object, optimizer, images, labels, train_loss, train_accuracy):
@@ -60,14 +80,14 @@ def test_step(model, loss_object, optimizer, images, labels, test_loss, test_acc
     test_loss(t_loss)
     test_accuracy(labels, predictions)
     
-def run(batch_size=64, epochs=5, model=None):
+def run(batch_size=64, learning_rate=1e-3, epochs=5, model=None):
     x_train, x_test, y_train, y_test = get_fashion_mnist()
     train_ds, test_ds = get_ds(x_train, x_test, y_train, y_test, batch_size)
     
     if not model:
-        model = get_model()
+        model = get_model_mlp()
     loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     
     train_loss = tf.keras.metrics.Mean(name='train_loss')
     train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
